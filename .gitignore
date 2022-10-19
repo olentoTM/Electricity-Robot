@@ -15,3 +15,8 @@ temp/
 testrun/*
 .~lock*
 *.pkl
+*.kdbx
+*.key
+*.keyx
+credentials.py
+interactive_console_output.xml

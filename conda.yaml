@@ -13,3 +13,4 @@ dependencies:
   - pip:
       # Define pip packages here -> https://pypi.org/
       - rpaframework==17.4.0    # https://rpaframework.org/releasenotes.html
+      - robotframework-keepasslibrary==0.3.1    # https://github.com/loomanw/robotframework-keepasslibrary
