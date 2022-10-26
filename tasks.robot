@@ -15,8 +15,7 @@ Library             RPA.Tables
 *** Variables ***
 ${pohja}               ${CURDIR}//output//Robottipohja.xlsx
 ${hinnat}              ${CURDIR}//output//data.xlsx    
-${hinnathuomenna}      ${CURDIR}//output//huominen.xlsx    
-${kulutus}             ${CURDIR}//output//Sähkö_12102022-18102022.csv
+${hinnathuomenna}      ${CURDIR}//output//data (1).xlsx
 
 *** Tasks ***
 Hae dataa sähkön kulutuksesta ja hinnasta
@@ -92,6 +91,7 @@ Hae sähkön hinta
     Input Text When Element Is Visible    id:startDate    ${startDate}
     sleep    1s
     Click Element    xpath:/html/body/main/section/main/div/div[1]/div/price-spot-fi/div[2]/div/div/div/button
+    Sleep    2s
 
 # Leevin osuus
 Hae hintatiedot
@@ -101,7 +101,8 @@ Hae hintatiedot
     [Return]    ${hintapohja}
 
 Hae kulutustiedot
-    ${kulutustiedot}=    Read table from CSV     ${kulutus}     delimiters=;
+    ${kulutus}=    Get Data Filename
+    ${kulutustiedot}=    Read table from CSV     ${OUTPUT_DIR}/${kulutus}     delimiters=;
     [Return]    ${kulutustiedot}
     
 Korvaa pohjan hinnat
