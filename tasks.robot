@@ -23,12 +23,14 @@ Hae dataa sähkön kulutuksesta ja hinnasta
     Kirjaudu sisään ja mene raportointi sivulle
     Etsi ja lataa kulutusdata
     Hae sähkön hinta
+    [Teardown]    Sulje selain
 
 Liitä tiedot Exceliin
     Korvaa pohjan hinnat
     Korvaa huomiset hinnat
     Korvaa pohjan kulutus
     Hae tiedot
+    [Teardown]    Siivoa Output Kansio
 
 *** Keywords ***
 Avaa verkkoselain ja mene Vantaan Energia Sähköverkkojen sivuille
@@ -92,6 +94,9 @@ Hae sähkön hinta
     sleep    1s
     Click Element    xpath:/html/body/main/section/main/div/div[1]/div/price-spot-fi/div[2]/div/div/div/button
     Sleep    2s
+
+Sulje selain
+    Close All Browsers
 
 # Leevin osuus
 Hae hintatiedot
@@ -175,4 +180,8 @@ Hae tiedot
 
     
     Log    Tämän päivän kallein tunti on ${kalleintuntitänään} ja se maksaa ${kalleinhintatänään}. Huomenna kallein tunti on ${kalleintuntihuomenna} ja se maksaa ${kalleinhintahuomenna}. 
-    Log    Halvin tunti tänään on ${halvintuntitänään} ja se maksaa ${halvinhintatänään}. Huomenna halvin tunti on ${halvintuntihuomenna} ja se maksaa ${halvinhintahuomenna}.   
+    Log    Halvin tunti tänään on ${halvintuntitänään} ja se maksaa ${halvinhintatänään}. Huomenna halvin tunti on ${halvintuntihuomenna} ja se maksaa ${halvinhintahuomenna}. 
+
+Siivoa Output Kansio
+    ${kulutusData}=    Get Data Filename
+    Remove Files    ${hinnat}    ${hinnathuomenna}    ${OUTPUT_DIR}/${kulutusData} 
