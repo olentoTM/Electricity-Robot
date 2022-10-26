@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Hakee dataa Vantaan Energia Sähköverkkojen sivustolta sekä sähkön SPOT-hinta tietoja ja näiden perusteella
 ...                 yrittää laskea kuluvan päivän ja huomisen hinnan sähkölaskulle.
-Library             RPA.Browser.Selenium    auto_close=${FALSE}
+Library             RPA.Browser.Selenium
 Library             RPA.HTTP
 Library             OperatingSystem
 Library             KeePassLibrary
