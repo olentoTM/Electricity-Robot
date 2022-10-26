@@ -9,6 +9,14 @@ Variables           credentials.py    #Koska en ole vielä saanut KeePass ominai
 Library             scripts/lastSevenDays.py
 Library             Process
 Library             DateTime
+Library             RPA.Excel.Files
+Library             RPA.Tables
+
+*** Variables ***
+${pohja}               ${CURDIR}//output//Robottipohja.xlsx
+${hinnat}              ${CURDIR}//output//data.xlsx    
+${hinnathuomenna}      ${CURDIR}//output//huominen.xlsx    
+${kulutus}             ${CURDIR}//output//Sähkö_12102022-18102022.csv
 
 *** Tasks ***
 Hae dataa sähkön kulutuksesta ja hinnasta
@@ -17,10 +25,16 @@ Hae dataa sähkön kulutuksesta ja hinnasta
     Etsi ja lataa kulutusdata
     Hae sähkön hinta
 
+Liitä tiedot Exceliin
+    Korvaa pohjan hinnat
+    Korvaa huomiset hinnat
+    Korvaa pohjan kulutus
+    Hae tiedot
+
 *** Keywords ***
 Avaa verkkoselain ja mene Vantaan Energia Sähköverkkojen sivuille
     Set Download Directory    ${OUTPUT_DIR}
-    Open Available Browser    https://online.vantaanenergiasahkoverkot.fi/eServices/Online/IndexNoAuth
+    Open Chrome Browser    https://online.vantaanenergiasahkoverkot.fi/eServices/Online/IndexNoAuth
     Maximize Browser Window    #Suurennetaan ikkuna, jotta kaikki elementit varmasti näykyvät botille.
 
 Hae kirjautumistunnukset
@@ -78,3 +92,86 @@ Hae sähkön hinta
     Input Text When Element Is Visible    id:startDate    ${startDate}
     sleep    1s
     Click Element    xpath:/html/body/main/section/main/div/div[1]/div/price-spot-fi/div[2]/div/div/div/button
+
+# Leevin osuus
+Hae hintatiedot
+    [Arguments]    ${workbook}
+    Open Workbook    ${workbook}
+    ${hintapohja}=    Read Worksheet As Table   WorkSheet
+    [Return]    ${hintapohja}
+
+Hae kulutustiedot
+    ${kulutustiedot}=    Read table from CSV     ${kulutus}     delimiters=;
+    [Return]    ${kulutustiedot}
+    
+Korvaa pohjan hinnat
+    ${hinnat}=    Hae hintatiedot   ${hinnat}
+    Open Workbook    ${pohja}
+    Set Active Worksheet   Hinnat
+
+    ${index}=    Set Variable     1
+    FOR    ${RIVI}    IN    @{hinnat}
+        # Set running index
+        FOR    ${SARAKE}    IN    @{RIVI}
+            Log    ${SARAKE}
+            
+            Set Cell Value    ${index}    ${SARAKE}    ${RIVI}[${SARAKE}]
+        END
+        ${index}=    Evaluate   ${index} + 1
+    END
+    Save Workbook   ${pohja}
+
+Korvaa huomiset hinnat
+    ${hinnat}=    Hae hintatiedot  ${hinnathuomenna}
+    Open Workbook    ${pohja}
+    Set Active Worksheet   Hinnat huomenna
+
+    ${index}=    Set Variable     1
+    FOR    ${RIVI}    IN    @{hinnat}
+        # Set running index
+        FOR    ${SARAKE}    IN    @{RIVI}
+            Log    ${SARAKE}
+            
+            Set Cell Value    ${index}    ${SARAKE}    ${RIVI}[${SARAKE}]
+        END
+        ${index}=    Evaluate   ${index} + 1
+    END
+    Save Workbook   ${pohja}
+    
+Korvaa pohjan kulutus
+    ${kulutus}=    Hae kulutustiedot
+    Open Workbook    ${pohja}
+    Set Active Worksheet   KulutusRaaka
+
+    ${index}=    Set Variable     2
+    ${sarakeindex}=    Set Variable     1
+    FOR    ${RIVI}    IN    @{kulutus}
+        ${sarakeindex}=    Set Variable     1
+        FOR    ${SARAKE}    IN    @{RIVI}            
+            IF    "${SARAKE}" == "Energia yhteensä (kWh)"
+                Set Cell Value    ${index}    ${sarakeindex}    ${RIVI}[${SARAKE}]  fmt="##.####"      
+            ELSE 
+                Set Cell Value    ${index}    ${sarakeindex}    ${RIVI}[${SARAKE}]
+            END
+            ${sarakeindex}=    Evaluate   ${sarakeindex} + 1
+        END
+        ${index}=    Evaluate   ${index} + 1
+    END
+    Save Workbook   ${pohja}
+    
+Hae tiedot
+    Open Workbook    ${pohja}
+    ${table}=     Read Worksheet As Table  Data
+    ${kalleinhintatänään}=       Get Cell Value    30    G
+    ${kalleinhintahuomenna}=     Get Cell Value    30    H    
+    ${kalleintuntitänään}=       Get Cell Value    31    G
+    ${kalleintuntihuomenna}=     Get Cell Value    31    H
+
+    ${halvinhintatänään}       Get Cell Value    32    G
+    ${halvinhintahuomenna}     Get Cell Value    32    H
+    ${halvintuntitänään}       Get Cell Value    33    G
+    ${halvintuntihuomenna}     Get Cell Value    33    H
+
+    
+    Log    Tämän päivän kallein tunti on ${kalleintuntitänään} ja se maksaa ${kalleinhintatänään}. Huomenna kallein tunti on ${kalleintuntihuomenna} ja se maksaa ${kalleinhintahuomenna}. 
+    Log    Halvin tunti tänään on ${halvintuntitänään} ja se maksaa ${halvinhintatänään}. Huomenna halvin tunti on ${halvintuntihuomenna} ja se maksaa ${halvinhintahuomenna}.   
